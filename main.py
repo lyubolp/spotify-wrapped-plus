@@ -1,3 +1,4 @@
+import argparse
 import dotenv
 import spotipy
 
@@ -58,11 +59,11 @@ def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], years: in
 
     return results
 
-def get_all_time_playlist():
+def get_all_time_playlist(username: str):
     auth_manager = SpotifyClientCredentials()
     sp = spotipy.Spotify(auth_manager=auth_manager)
 
-    wrapped_playlists = get_wrapped_playlists(sp, 'lyubolp')
+    wrapped_playlists = get_wrapped_playlists(sp, username)
 
     # TODO: Wrapped 2021 and 2022 are missing.
 
@@ -79,8 +80,23 @@ def get_all_time_playlist():
     years = 2022 - min([track[3] for track in all_tracks])
     return calculate_results(all_tracks_with_scores, years, track_id_to_name)
 
+
+def set_up_cli():
+    parser = argparse.ArgumentParser(prog = 'Spotify Wrapped+',
+                    description = 'Shows an all-time ranking of all Spotify Wrapped playlists',)
+    parser.add_argument('-t', '--top', type=int, default=10, help='Number of top songs to show')
+    parser.add_argument('-u', '--user', type=str, help='Spotify username')
+
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    
-    top_tracks = get_all_time_playlist()
-    for index, song_data in enumerate(top_tracks[:10]):
+    parsed_args = set_up_cli()
+
+    username = parsed_args.user
+    amount_to_show = parsed_args.top
+
+    top_tracks = get_all_time_playlist(username)
+
+    for index, song_data in enumerate(top_tracks[:amount_to_show]):
         print(f'{index+1}. {song_data[0]} - {song_data[1]:.2f}')
