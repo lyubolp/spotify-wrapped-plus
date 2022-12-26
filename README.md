@@ -28,6 +28,17 @@ To change the amount of songs shown, use the `-t` flag. The default is 10.
 python3 main.py -u <spotify_username> -t 20
 ```
 
+
+## Roadmap
+- [ ] Add unit tests
+- [ ] Add Github Actions workflow
+- [ ] Add support for searching for a specific song
+- [ ] Add support for ranking artists
+- [ ] Add support for ranking genres
+- [ ] Add support for ranking albums
+- [ ] Add support for creating a playlist with the top songs
+
+
 ## Contributing
 If you find a bug or have a feature request, please open an issue. If you want to contribute, please open a pull request.
 
