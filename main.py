@@ -1,13 +1,12 @@
-# Shows a user's playlists (need to be authenticated via oauth)
 import dotenv
 import spotipy
 
-from typing import Tuple
+from typing import Dict, List, Tuple
 from spotipy.oauth2 import SpotifyClientCredentials
 
 dotenv.load_dotenv() 
 
-def get_wrapped_playlists(client: spotipy.Spotify, username: str):
+def get_wrapped_playlists(client: spotipy.Spotify, username: str) -> List[Tuple[str, str]]:
     playlists = client.user_playlists(username)
 
     wrapped_playlists = []
@@ -23,7 +22,7 @@ def get_wrapped_playlists(client: spotipy.Spotify, username: str):
 
     return wrapped_playlists
 
-def get_playlist_tracks(client: spotipy.Spotify, playlist_uri: str, playlist_name: str):
+def get_playlist_tracks(client: spotipy.Spotify, playlist_uri: str, playlist_name: str) -> List[Tuple[int, str, str, int]]:
     year = int(playlist_name.split(' ')[-1])
     results = client.playlist_tracks(playlist_uri)
     tracks = results['items']
@@ -42,7 +41,24 @@ def calculate_score(song: Tuple[int, str, str, int]) -> float:
 
     return rank_score / year_score
 
-if __name__ == '__main__':
+def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], years: int, track_id_to_name: Dict[str, str]) -> List[Tuple[str, float]]:
+    results = {}
+    for track, score in all_tracks_with_scores:
+        if track in results:
+            results[track] += score
+        else:
+            results[track] = score
+
+        
+    for track in results:
+        results[track] /= years
+
+    results = [(track_id_to_name[track], score) for track, score in results.items()]    
+    results = sorted(results, key=lambda x: x[1], reverse=True)
+
+    return results
+
+def get_all_time_playlist():
     auth_manager = SpotifyClientCredentials()
     sp = spotipy.Spotify(auth_manager=auth_manager)
 
@@ -57,23 +73,14 @@ if __name__ == '__main__':
     all_tracks = [get_playlist_tracks(sp, playlist_uri, playlist_name) for playlist_uri, playlist_name in wrapped_playlists]
     all_tracks = sum(all_tracks, [])
 
-    years = 2022 - min([track[3] for track in all_tracks])
     track_id_to_name = {track[1]: track[2] for track in all_tracks}
-
     all_tracks_with_scores = [(song[1], calculate_score(song)) for song in all_tracks]
-
-    results = {}
-    for track, score in all_tracks_with_scores:
-        if track in results:
-            results[track] += score
-        else:
-            results[track] = score
     
-    for track in results:
-        results[track] /= years
+    years = 2022 - min([track[3] for track in all_tracks])
+    return calculate_results(all_tracks_with_scores, years, track_id_to_name)
 
-    results = [(track_id_to_name[track], score) for track, score in results.items()]    
-    results = sorted(results, key=lambda x: x[1], reverse=True)
-
-    for index, song_data in enumerate(results[:10]):
+if __name__ == '__main__':
+    
+    top_tracks = get_all_time_playlist()
+    for index, song_data in enumerate(top_tracks[:10]):
         print(f'{index+1}. {song_data[0]} - {song_data[1]:.2f}')
