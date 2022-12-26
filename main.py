@@ -3,7 +3,7 @@ import dotenv
 import spotipy
 
 from typing import Dict, List, Tuple
-from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 
 dotenv.load_dotenv() 
 
@@ -38,7 +38,7 @@ def calculate_score(song: Tuple[int, str, str, int]) -> float:
     song_ranking, song_id, song_name, year = song
 
     rank_score = 101 - song_ranking
-    year_score = 2022 - year
+    year_score = 2022 - year + 1
 
     return rank_score / year_score
 
@@ -60,17 +60,12 @@ def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], years: in
     return results
 
 def get_all_time_playlist(username: str):
-    auth_manager = SpotifyClientCredentials()
+    scope = 'playlist-read-private'
+    auth_manager = SpotifyOAuth(scope=scope)
     sp = spotipy.Spotify(auth_manager=auth_manager)
 
     wrapped_playlists = get_wrapped_playlists(sp, username)
 
-    # TODO: Wrapped 2021 and 2022 are missing.
-
-    # I'll add them manually
-    # wrapped_playlists.append(('spotify:playlist:37i9dQZF1EUMDoJuT8yJsl', 'Top Songs 2021'))
-    # wrapped_playlists.append(('spotify:playlist:37i9dQZF1F0sijgNaJdgit', 'Top Songs 2022'))
-    
     all_tracks = [get_playlist_tracks(sp, playlist_uri, playlist_name) for playlist_uri, playlist_name in wrapped_playlists]
     all_tracks = sum(all_tracks, [])
 
