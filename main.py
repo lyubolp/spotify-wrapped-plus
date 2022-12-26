@@ -93,7 +93,7 @@ def set_up_cli():
     parser = argparse.ArgumentParser(prog = 'Spotify Wrapped+',
                     description = 'Shows an all-time ranking of all Spotify Wrapped playlists',)
     parser.add_argument('-t', '--top', type=int, default=10, help='Number of top songs to show')
-    parser.add_argument('-u', '--user', type=str, help='Spotify username')
+    parser.add_argument('-u', '--user', type=str, help='Spotify username', required=True)
 
     return parser.parse_args()
 
