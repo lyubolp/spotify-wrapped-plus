@@ -34,15 +34,27 @@ def get_playlist_tracks(client: spotipy.Spotify, playlist_uri: str, playlist_nam
     tracks = [(i+1, track['track']['id'], track['track']['name'], year) for i, track in enumerate(tracks)]
     return tracks
 
-def calculate_score(song: Tuple[int, str, str, int]) -> float:
+def calculate_score(song: Tuple[int, str, str, int], min_year) -> float:
     song_ranking, song_id, song_name, year = song
 
     rank_score = 101 - song_ranking
-    year_score = 2022 - year + 1
 
-    return rank_score / year_score
+    # The more recent the playlist, the more weight it has
+    # e.g. for the range [2018, 2022]
+    # 5 years => 0.20 weight per year
 
-def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], years: int, track_id_to_name: Dict[str, str]) -> List[Tuple[str, float]]:
+    # 2022 playlist has 1x weight
+    # 2021 playlist has 0.80x (4 x 0.20) weight
+    # 2020 playlist has 0.60x (3 x 0.20) weight
+    # 2019 playlist has 0.40x (2 x 0.20) weight
+    # 2018 playlist has 0.20x (1 x 0.20) weight
+
+    weight = 1 / (2022 - min_year + 1)
+    year_multiplier = (year - min_year + 1) * weight
+
+    return rank_score * year_multiplier
+
+def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], min_year: int, track_id_to_name: Dict[str, str]) -> List[Tuple[str, float]]:
     results = {}
     for track, score in all_tracks_with_scores:
         if track in results:
@@ -50,7 +62,7 @@ def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], years: in
         else:
             results[track] = score
 
-        
+    years = 2022 - min_year + 1
     for track in results:
         results[track] /= years
 
@@ -70,10 +82,11 @@ def get_all_time_playlist(username: str):
     all_tracks = sum(all_tracks, [])
 
     track_id_to_name = {track[1]: track[2] for track in all_tracks}
-    all_tracks_with_scores = [(song[1], calculate_score(song)) for song in all_tracks]
     
-    years = 2022 - min([track[3] for track in all_tracks])
-    return calculate_results(all_tracks_with_scores, years, track_id_to_name)
+    min_year = min([track[3] for track in all_tracks])
+    all_tracks_with_scores = [(song[1], calculate_score(song, min_year)) for song in all_tracks]
+    
+    return calculate_results(all_tracks_with_scores, min_year, track_id_to_name)
 
 
 def set_up_cli():
