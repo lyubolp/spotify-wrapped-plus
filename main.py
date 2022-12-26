@@ -7,8 +7,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 dotenv.load_dotenv() 
 
-def get_wrapped_playlists(client: spotipy.Spotify):
-    playlists = client.user_playlists('lyubolp')
+def get_wrapped_playlists(client: spotipy.Spotify, username: str):
+    playlists = client.user_playlists(username)
 
     wrapped_playlists = []
 
@@ -46,12 +46,13 @@ if __name__ == '__main__':
     auth_manager = SpotifyClientCredentials()
     sp = spotipy.Spotify(auth_manager=auth_manager)
 
-    wrapped_playlists = get_wrapped_playlists(sp)
+    wrapped_playlists = get_wrapped_playlists(sp, 'lyubolp')
 
-    print(wrapped_playlists)
     # TODO: Wrapped 2021 and 2022 are missing.
 
     # I'll add them manually
+    # wrapped_playlists.append(('spotify:playlist:37i9dQZF1EUMDoJuT8yJsl', 'Top Songs 2021'))
+    # wrapped_playlists.append(('spotify:playlist:37i9dQZF1F0sijgNaJdgit', 'Top Songs 2022'))
     
     all_tracks = [get_playlist_tracks(sp, playlist_uri, playlist_name) for playlist_uri, playlist_name in wrapped_playlists]
     all_tracks = sum(all_tracks, [])
