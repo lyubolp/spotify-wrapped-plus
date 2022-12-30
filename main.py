@@ -1,11 +1,13 @@
+from src.song import Song
+
 import argparse
 import dotenv
 import spotipy
 
 from typing import Dict, List, Tuple
-from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth
 
-dotenv.load_dotenv() 
+dotenv.load_dotenv()
 
 def get_wrapped_playlists(client: spotipy.Spotify, username: str) -> List[Tuple[str, str]]:
     playlists = client.user_playlists(username)
@@ -23,7 +25,7 @@ def get_wrapped_playlists(client: spotipy.Spotify, username: str) -> List[Tuple[
 
     return wrapped_playlists
 
-def get_playlist_tracks(client: spotipy.Spotify, playlist_uri: str, playlist_name: str) -> List[Tuple[int, str, str, int]]:
+def get_playlist_tracks(client: spotipy.Spotify, playlist_uri: str, playlist_name: str) -> List[Song]:
     year = int(playlist_name.split(' ')[-1])
     results = client.playlist_tracks(playlist_uri)
     tracks = results['items']
@@ -31,28 +33,8 @@ def get_playlist_tracks(client: spotipy.Spotify, playlist_uri: str, playlist_nam
         results = client.next(results)
         tracks.extend(results['items'])
 
-    tracks = [(i+1, track['track']['id'], track['track']['name'], year) for i, track in enumerate(tracks)]
+    tracks = [Song(track['track']['id'], track['track']['name'], year, i+1) for i, track in enumerate(tracks)]
     return tracks
-
-def calculate_score(song: Tuple[int, str, str, int], min_year) -> float:
-    song_ranking, song_id, song_name, year = song
-
-    rank_score = 101 - song_ranking
-
-    # The more recent the playlist, the more weight it has
-    # e.g. for the range [2018, 2022]
-    # 5 years => 0.20 weight per year
-
-    # 2022 playlist has 1x weight
-    # 2021 playlist has 0.80x (4 x 0.20) weight
-    # 2020 playlist has 0.60x (3 x 0.20) weight
-    # 2019 playlist has 0.40x (2 x 0.20) weight
-    # 2018 playlist has 0.20x (1 x 0.20) weight
-
-    weight = 1 / (2022 - min_year + 1)
-    year_multiplier = (year - min_year + 1) * weight
-
-    return rank_score * year_multiplier
 
 def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], min_year: int, track_id_to_name: Dict[str, str]) -> List[Tuple[str, float]]:
     results = {}
@@ -81,10 +63,10 @@ def get_all_time_playlist(username: str):
     all_tracks = [get_playlist_tracks(sp, playlist_uri, playlist_name) for playlist_uri, playlist_name in wrapped_playlists]
     all_tracks = sum(all_tracks, [])
 
-    track_id_to_name = {track[1]: track[2] for track in all_tracks}
+    track_id_to_name = {track.id: track.name for track in all_tracks}
     
-    min_year = min([track[3] for track in all_tracks])
-    all_tracks_with_scores = [(song[1], calculate_score(song, min_year)) for song in all_tracks]
+    min_year = min([track.year for track in all_tracks])
+    all_tracks_with_scores = [(song.id, song.calculate_score(min_year)) for song in all_tracks]
     
     return calculate_results(all_tracks_with_scores, min_year, track_id_to_name)
 
