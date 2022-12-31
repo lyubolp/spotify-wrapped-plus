@@ -1,5 +1,5 @@
 lint:
-    python3 -m pylint *.py
+    python3 -m pylint */*.py main.py
 
 run USER='lyubolp' AMOUNT='10':
     . .venv/bin/activate
