@@ -10,38 +10,11 @@ from spotipy.oauth2 import SpotifyOAuth
 import dotenv
 import spotipy
 
+from src.playlist import Playlist, get_wrapped_playlists
 from src.song import Song
 
 
 dotenv.load_dotenv()
-
-def get_wrapped_playlists(client: spotipy.Spotify, username: str) -> List[Tuple[str, str]]:
-    playlists = client.user_playlists(username)
-
-    wrapped_playlists = []
-
-    while playlists:
-        for i, playlist in enumerate(playlists['items']):
-            if 'Top Songs' in playlist['name']:
-                wrapped_playlists.append((playlist['uri'],  playlist['name']))
-        if playlists['next']:
-            playlists = client.next(playlists)
-        else:
-            playlists = None
-
-    return wrapped_playlists
-
-
-def get_playlist_tracks(client: spotipy.Spotify, playlist_uri: str, playlist_name: str) -> List[Song]:
-    year = int(playlist_name.split(' ')[-1])
-    results = client.playlist_tracks(playlist_uri)
-    tracks = results['items']
-    while results['next']:
-        results = client.next(results)
-        tracks.extend(results['items'])
-
-    tracks = [Song(track['track']['id'], track['track']['name'], year, i+1) for i, track in enumerate(tracks)]
-    return tracks
 
 
 def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], min_year: int, track_id_to_name: Dict[str, str]) -> List[Tuple[str, float]]:
@@ -68,7 +41,7 @@ def get_all_time_playlist(username: str):
 
     wrapped_playlists = get_wrapped_playlists(sp, username)
 
-    all_tracks = [get_playlist_tracks(sp, playlist_uri, playlist_name) for playlist_uri, playlist_name in wrapped_playlists]
+    all_tracks = [playlist.get_playlist_tracks(sp) for playlist in wrapped_playlists]
     all_tracks = sum(all_tracks, [])
 
     track_id_to_name = {track.id: track.name for track in all_tracks}
