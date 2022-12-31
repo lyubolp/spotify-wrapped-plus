@@ -1,11 +1,17 @@
-from src.song import Song
-
+"""
+Main driver code for Spotify Wrapped+.
+"""
 import argparse
+
+from typing import Dict, List, Tuple
+
+from spotipy.oauth2 import SpotifyOAuth
+
 import dotenv
 import spotipy
 
-from typing import Dict, List, Tuple
-from spotipy.oauth2 import SpotifyOAuth
+from src.song import Song
+
 
 dotenv.load_dotenv()
 
@@ -25,6 +31,7 @@ def get_wrapped_playlists(client: spotipy.Spotify, username: str) -> List[Tuple[
 
     return wrapped_playlists
 
+
 def get_playlist_tracks(client: spotipy.Spotify, playlist_uri: str, playlist_name: str) -> List[Song]:
     year = int(playlist_name.split(' ')[-1])
     results = client.playlist_tracks(playlist_uri)
@@ -35,6 +42,7 @@ def get_playlist_tracks(client: spotipy.Spotify, playlist_uri: str, playlist_nam
 
     tracks = [Song(track['track']['id'], track['track']['name'], year, i+1) for i, track in enumerate(tracks)]
     return tracks
+
 
 def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], min_year: int, track_id_to_name: Dict[str, str]) -> List[Tuple[str, float]]:
     results = {}
