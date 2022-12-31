@@ -10,14 +10,16 @@ from spotipy.oauth2 import SpotifyOAuth
 import dotenv
 import spotipy
 
-from src.playlist import Playlist, get_wrapped_playlists
-from src.song import Song
+from src.playlist import get_wrapped_playlists
 
 
 dotenv.load_dotenv()
 
-
+# TODO - Refactor this function
 def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], min_year: int, track_id_to_name: Dict[str, str]) -> List[Tuple[str, float]]:
+    """
+    Calculates the final results for the all-time ranking.
+    """
     results = {}
     for track, score in all_tracks_with_scores:
         if track in results:
@@ -29,30 +31,39 @@ def calculate_results(all_tracks_with_scores: List[Tuple[str, float]], min_year:
     for track in results:
         results[track] /= years
 
-    results = [(track_id_to_name[track], score) for track, score in results.items()]    
+    results = [(track_id_to_name[track], score) for track, score in results.items()]
     results = sorted(results, key=lambda x: x[1], reverse=True)
 
     return results
 
 def get_all_time_playlist(username: str):
+    """
+    Retuns a ranking for all songs in all Spotify Wrapped playlists.
+
+    :param username: Spotify username
+    :return: List of tuples of the form (song_name, score)
+    """
     scope = 'playlist-read-private'
     auth_manager = SpotifyOAuth(scope=scope)
-    sp = spotipy.Spotify(auth_manager=auth_manager)
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
 
-    wrapped_playlists = get_wrapped_playlists(sp, username)
+    wrapped_playlists = get_wrapped_playlists(spotify, username)
 
-    all_tracks = [playlist.get_playlist_tracks(sp) for playlist in wrapped_playlists]
+    all_tracks = [playlist.get_playlist_tracks(spotify) for playlist in wrapped_playlists]
     all_tracks = sum(all_tracks, [])
 
     track_id_to_name = {track.id: track.name for track in all_tracks}
-    
-    min_year = min([track.year for track in all_tracks])
+
+    min_year = min(track.year for track in all_tracks)
     all_tracks_with_scores = [(song.id, song.calculate_score(min_year)) for song in all_tracks]
-    
+
     return calculate_results(all_tracks_with_scores, min_year, track_id_to_name)
 
 
 def set_up_cli():
+    """
+    Sets up the CLI for the program.
+    """
     parser = argparse.ArgumentParser(prog = 'Spotify Wrapped+',
                     description = 'Shows an all-time ranking of all Spotify Wrapped playlists',)
     parser.add_argument('-t', '--top', type=int, default=10, help='Number of top songs to show')
