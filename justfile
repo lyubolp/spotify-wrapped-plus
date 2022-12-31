@@ -11,5 +11,11 @@ lint: venv
     mypy src main.py
     flake8 src main.py
 
+test: venv
+    python3 -m unittest discover -s tests
+
+push: venv lint test
+    git push
+
 run USER='lyubolp' AMOUNT='10': venv
     python3 main.py -u {{USER}} -t {{AMOUNT}}
