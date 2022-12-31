@@ -2,6 +2,7 @@
 Module containing the Song class.
 """
 
+
 class Song:
     """
     Contains all the needed information about a song.
@@ -28,14 +29,14 @@ class Song:
         return self.__name
 
     @property
-    def year(self) -> str:
+    def year(self) -> int:
         """
         Returns the year the song was on the playlist.
         """
         return self.__year
 
     @property
-    def ranking(self) -> str:
+    def ranking(self) -> int:
         """
         Returns the ranking of the song on the playlist.
         """
