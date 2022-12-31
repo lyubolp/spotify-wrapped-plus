@@ -7,29 +7,44 @@ class Song:
     Contains all the needed information about a song.
     """
 
-    def __init__(self, id, name, year, ranking):
-        self.__id = id
+    def __init__(self, identifier, name, year, ranking):
+        self.__identifier = identifier
         self.__name = name
         self.__year = year
         self.__ranking = ranking
 
     @property
-    def id(self) -> str:
-        return self.__id
-    
+    def identifier(self) -> str:
+        """
+        Returns the Spotify identifier for the song.
+        """
+        return self.__identifier
+
     @property
     def name(self) -> str:
+        """
+        Returns the name of the song.
+        """
         return self.__name
 
     @property
     def year(self) -> str:
+        """
+        Returns the year the song was on the playlist.
+        """
         return self.__year
 
     @property
     def ranking(self) -> str:
+        """
+        Returns the ranking of the song on the playlist.
+        """
         return self.__ranking
 
     def calculate_score(self, min_year: int) -> float:
+        """
+        Calculates the score of the song based on its ranking and the year it was on the playlist.
+        """
         rank_score = 101 - self.ranking
 
         # The more recent the playlist, the more weight it has
@@ -46,4 +61,3 @@ class Song:
         year_multiplier = (self.year - min_year + 1) * weight
 
         return rank_score * year_multiplier
-
