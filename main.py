@@ -52,10 +52,10 @@ def get_all_time_playlist(username: str):
     all_tracks = [playlist.get_playlist_tracks(spotify) for playlist in wrapped_playlists]
     all_tracks = sum(all_tracks, [])
 
-    track_id_to_name = {track.id: track.name for track in all_tracks}
+    track_id_to_name = {track.identifier: track.name for track in all_tracks}
 
     min_year = min(track.year for track in all_tracks)
-    all_tracks_with_scores = [(song.id, song.calculate_score(min_year)) for song in all_tracks]
+    all_tracks_with_scores = [(song.identifier, song.calculate_score(min_year)) for song in all_tracks]
 
     return calculate_results(all_tracks_with_scores, min_year, track_id_to_name)
 
