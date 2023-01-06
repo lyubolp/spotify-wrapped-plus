@@ -2,15 +2,18 @@
 Module containing the Playlist class.
 """
 from typing import List
+import re
 
 import spotipy
 
 from src.song import Song
 
-class ClientNotAvailableError(Exception):
+
+class ClientError(Exception):
     """
     Raised when the Spotify client is not available.
     """
+
 
 class Playlist:
     """
@@ -41,9 +44,14 @@ class Playlist:
         :param client: The Spotify client.
         :return: A list of Song objects.
         """
-        year = int(self.name.split(' ')[-1])
+        if not self.__is_playlist_name_valid():
+            raise ValueError('Playlist name is not valid')
+
+        year = self.__get_year_from_playlist()
+        
         results = client.playlist_tracks(self.uri)
         tracks = results['items']
+
         while results['next']:
             results = client.next(results)
             tracks.extend(results['items'])
@@ -51,6 +59,25 @@ class Playlist:
         tracks = [Song(track['track']['id'], track['track']['name'], year, i+1)
                   for i, track in enumerate(tracks)]
         return tracks
+
+    def __is_playlist_name_valid(self) -> bool:
+        """
+        Returns True if the playlist name is valid, False otherwise.
+        """
+        year_regex = re.compile(r'\d{4}')
+        return year_regex.search(self.name) is not None
+    
+    def __get_year_from_playlist(self) -> int:
+        """
+        Returns the year of the playlist.
+        """
+        year_regex = re.compile(r'\d{4}')
+        year = year_regex.search(self.name)
+
+        if year is None:
+            raise ValueError('Playlist name is not valid')
+
+        return int(year.group(0))
 
 
 def get_wrapped_playlists(client: spotipy.Spotify, username: str) -> List[Playlist]:

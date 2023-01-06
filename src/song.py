@@ -46,8 +46,12 @@ class Song:
         """
         Calculates the score of the song based on its ranking and the year it was on the playlist.
         """
+        # TODO: Ranking bigger than 100 breaks the code
         rank_score = 101 - self.ranking
 
+        if rank_score <= 0:
+            raise ValueError('Ranking must be between 1 and 100')
+        
         # The more recent the playlist, the more weight it has
         # e.g. for the range [2018, 2022]
         # 5 years => 0.20 weight per year
@@ -59,7 +63,14 @@ class Song:
         # 2018 playlist has 0.20x (1 x 0.20) weight
 
         weight = 1 / (2022 - min_year + 1)
+
+        if not 0 <= weight <= 1:
+            raise ValueError('Weight must be between 0 and 1')
+        
         year_multiplier = (self.year - min_year + 1) * weight
+
+        if year_multiplier <= 0:
+            raise ValueError('Year multiplier must be greater than 0')
 
         return rank_score * year_multiplier
 
