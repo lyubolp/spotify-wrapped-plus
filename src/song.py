@@ -62,3 +62,6 @@ class Song:
         year_multiplier = (self.year - min_year + 1) * weight
 
         return rank_score * year_multiplier
+
+    def __eq__(self, other):
+        return self.identifier == other.identifier
