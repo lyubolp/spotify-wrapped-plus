@@ -7,6 +7,10 @@ import spotipy
 
 from src.song import Song
 
+class ClientNotAvailableError(Exception):
+    """
+    Raised when the Spotify client is not available.
+    """
 
 class Playlist:
     """
