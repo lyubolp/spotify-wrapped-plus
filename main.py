@@ -61,7 +61,7 @@ def get_all_time_playlist(username: str):
 
     min_year = min(track.year for track in all_tracks)
     all_tracks_with_scores = [(song.identifier, song.calculate_score(min_year))
-                              for song in all_tracks]
+                              for song in all_tracks if song.ranking <= 100]
 
     return calculate_results(all_tracks_with_scores, min_year, track_id_to_name)
 
