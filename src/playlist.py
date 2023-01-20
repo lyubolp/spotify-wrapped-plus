@@ -48,8 +48,12 @@ class Playlist:
             raise ValueError('Playlist name is not valid')
 
         year = self.__get_year_from_playlist()
-        
+
         results = client.playlist_tracks(self.uri)
+
+        if results is None:
+            raise ClientError('The Spotify client returned an error')
+
         tracks = results['items']
 
         while results['next']:
@@ -66,7 +70,7 @@ class Playlist:
         """
         year_regex = re.compile(r'\d{4}')
         return year_regex.search(self.name) is not None
-    
+
     def __get_year_from_playlist(self) -> int:
         """
         Returns the year of the playlist.
