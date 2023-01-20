@@ -30,8 +30,6 @@ python3 main.py -u <spotify_username> -t 20
 
 
 ## Roadmap
-- [ ] Add unit tests
-- [ ] Add Github Actions workflow
 - [ ] Add support for searching for a specific song
 - [ ] Add support for ranking artists
 - [ ] Add support for ranking genres
