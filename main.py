@@ -77,7 +77,7 @@ def set_up_cli():
 
     me_group = parser.add_mutually_exclusive_group(required=True)
     me_group.add_argument('-t', '--top',
-                          type=int, default=10,
+                          type=int,
                           help='Number of top songs to show')
 
     me_group.add_argument('-s', '--song',
