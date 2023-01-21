@@ -73,10 +73,16 @@ def set_up_cli():
     parser = argparse.ArgumentParser(
         prog='Spotify Wrapped+',
         description='Shows an all-time ranking of all Spotify Wrapped playlists',)
-    parser.add_argument('-t', '--top',
-                        type=int, default=10,
-                        help='Number of top songs to show')
     parser.add_argument('-u', '--user', type=str, help='Spotify username', required=True)
+
+    me_group = parser.add_mutually_exclusive_group(required=True)
+    me_group.add_argument('-t', '--top',
+                          type=int,
+                          help='Number of top songs to show')
+
+    me_group.add_argument('-s', '--song',
+                          type=str,
+                          help='Song to search for')
 
     return parser.parse_args()
 
@@ -89,5 +95,12 @@ if __name__ == '__main__':
 
     top_tracks = get_all_time_playlist(user)
 
-    for index, song_data in enumerate(top_tracks[:amount_to_show]):
-        print(f'{index+1}. {song_data[0]} - {song_data[1]:.2f}')
+    if parsed_args.song is not None:
+        song_name = parsed_args.song
+        for index, song_data in enumerate(top_tracks):
+            if song_data[0] == song_name:
+                print(f'{song_data[0]}, ranked #{index+1}, score: {song_data[1]:.2f}')
+                break
+    elif parsed_args.top is not None:
+        for index, song_data in enumerate(top_tracks[:amount_to_show]):
+            print(f'{index+1}. {song_data[0]} - {song_data[1]:.2f}')
